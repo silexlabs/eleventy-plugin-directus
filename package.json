@@ -1,33 +1,45 @@
 {
-  "name": "@scope/plugin-name",
+  "name": "@silex/eleventy-plugin-directus",
   "version": "1.0.0",
-  "description": "Description of plugin",
-  "homepage": "",
+  "description": "Expose Directus collections as global data in 11ty ",
+  "homepage": "https://github.com/silexlabs/eleventy-plugin-directus",
   "main": ".eleventy.js",
   "scripts": {
     "start": "eleventy --serve",
+    "directus": "cd _scripts/directus-server/ && directus start",
     "build": "eleventy",
+    "test": "jest",
     "bump": "npm --no-git-tag-version version"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/username/repo-name.git"
+    "url": "git@github.com:silexlabs/eleventy-plugin-directus.git"
   },
   "keywords": [
     "11ty",
     "11ty-plugin",
     "eleventy",
-    "eleventy-plugin"
+    "eleventy-plugin",
+    "directus",
+    "cms",
+    "no-code"
   ],
   "author": {
-    "name": "username",
-    "url": "https://website.com"
+    "name": "lexoyo",
+    "url": "https://lexoyo.me/"
   },
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/username/repo-name/issues"
+    "url": "https://github.com/silexlabs/eleventy-plugin-directus/issues"
   },
   "devDependencies": {
-    "@11ty/eleventy": "^0.11.1"
+    "@11ty/eleventy": "^1.0.2",
+    "directus": "^9.20.4",
+    "isomorphic-fetch": "^3.0.0",
+    "jest": "^29.3.1"
+  },
+  "dependencies": {
+    "@directus/sdk": "^10.1.5",
+    "sqlite3": "^5.1.2"
   }
 }

@@ -1,73 +1,81 @@
-## Eleventy Plugin Template
+## Eleventy Plugin Directus
 
-> A starter environment for creating plugins for Eleventy (11ty).
+> This plugin is a work in progress, we use it in production at [Internet 2000](https://internet2000.net), PRs welcome
 
-Fork this repo, or select "Use this template" to get started.
+Expose [Directus](https://directus.io) collections as global data in 11ty. This will let you access your Directus collections as global data in your 11ty site. By default the data will be available in `directus.collections.*`
 
-### Using this template
+### Usage
 
-This template is setup to run a single page 11ty site for testing your plugin functionality. The build files are excluded from the final plugin package via `.npmignore`.
+1. Install the plugin using npm:
 
-Your plugin functionality should live in/be exported from `.eleventy.js`. You will find a sample of creating a filter plugin in this template, including setting up a default config and merging user options.
+   ```sh
+   npm install @silex/eleventy-plugin-directus
+   ```
 
-**Be sure to update the `package.json` with your own details!**
+2. Add the plugin to your `.eleventy.js` config:
 
-### Testing your plugin
+   ```js
+   const pluginDirectus = require("@silex/eleventy-plugin-directus")
 
-You can test your functionality within this project's local 11ty build by running `npm start`, but you'll also want to test it _as a plugin_.
+   const {
+     DIRECTUS_URL,
+   } = process.env
 
-From another local 11ty project, you can set the `require()` path relatively to your plugin's project directory, and then use it just as you would for a plugin coming from a package.
+   module.exports = (eleventyConfig) => {
+     eleventyConfig.addPlugin(pluginDirectus, {
+       url: DIRECTUS_URL,
+     })
+   }
+   ```
 
-Example, assuming you place all your repositories within the same parent directory:
+   The example above is assuming you provide `DIRECTUS_URL` as env var, e.g. start eleventy with `DIRECTUS_URL=http://localhost:8055 eleventy`
+
+3. Run or build your Eleventy project and use the global `directus` data variable to access your collections
+
+### Troubleshooting
+
+For this plugin to retrieve **public** data, check the permissions for the public role in directus
+
+For this plugin to retrieve **private** data, use the `skd.authenticated` option, see "Advanced options" section bellow
+
+### Advanced options
+
+| Variable name | Desctiption | Default |
+| -- | -- | -- |
+| url | Directus server root URL | `http://localhost:8055` |
+| name | Name of the global data key | `directus` |
+| auth | Object passed to [Directus SDK's constructor as the `auth` option](https://docs.directus.io/reference/sdk.html#auth) | - (optional, this is useful for custom auth implementations only) |
+| login | Object passed to [Directus SDK's `auth.login` method](https://docs.directus.io/reference/sdk.html#login) | - (optional, this is useful to retrieve private data only) |
+| token | String passed to [Directus SDK's `auth.static` method](https://docs.directus.io/reference/sdk.html#login) | - (optional, this is useful to retrieve private data only) |
+
+### Config Examples
 
 ```js
-const pluginName = require("../plugin-directory");
-
-module.exports = (eleventyConfig) => {
-  eleventyConfig.addPlugin(pluginName, { optionName: 'if needed' );
-};
+  eleventyConfig.addPlugin(pluginDirectus, {
+    url: DIRECTUS_URL,
+    name: 'cms',
+    login: {
+      email: 'admin@example.com',
+      password: 'd1r3ctu5',
+    },
+  })
 ```
 
-Then, run the project to test the plugin's functionality.
+### Filters and shortcodes
 
-Note that making changes in the plugin source will likely require restarting the test project.
+#### Permalinks
 
-### Resources for creating an 11ty plugin
+#### Media URL
 
-- Bryan Robinson's ["Create a Plugin with 11ty"](https://www.youtube.com/watch?v=aO-NFFKjnnE) demonstration on "Learn With Jason"
+#### Translation
 
----
+### 1 collection as a page
 
-**The following is a boilerplate for your final plugin README**.
+### All collections as pages
 
-## Usage
+### All collections in all languages as pages
 
-Describe how to install your plugin, such as:
+### Unit tests
 
-```bash
-npm install @scope/plugin-name
-```
+`npm test`
 
-Then, include it in your `.eleventy.js` config file:
-
-```js
-const pluginName = require("@scope/plugin-name");
-
-module.exports = (eleventyConfig) => {
-  eleventyConfig.addPlugin(pluginName);
-};
-```
-
-## Config Options
-
-| Option      | Type | Default       |
-| ----------- | ---- | ------------- |
-| option name | type | default value |
-
-## Config Examples
-
-Show examples of likely configurations.
-
-## Credits
-
-Add credits if needed.
