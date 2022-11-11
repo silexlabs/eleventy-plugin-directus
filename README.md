@@ -17,19 +17,12 @@ Expose [Directus](https://directus.io) collections as global data in 11ty. This 
    ```js
    const pluginDirectus = require("@silex/eleventy-plugin-directus")
 
-   const {
-     DIRECTUS_URL,
-   } = process.env
-
    module.exports = (eleventyConfig) => {
      eleventyConfig.addPlugin(pluginDirectus, {
-       url: DIRECTUS_URL,
+       url: 'http://localhost:8055',
      })
    }
    ```
-
-   The example above is assuming you provide `DIRECTUS_URL` as env var, e.g. start eleventy with `DIRECTUS_URL=http://localhost:8055 eleventy`
-
 3. Run or build your Eleventy project and use the global `directus` data variable to access your collections
 
 ### Troubleshooting
@@ -52,8 +45,8 @@ For this plugin to retrieve **private** data, use the `skd.authenticated` option
 
 ```js
   eleventyConfig.addPlugin(pluginDirectus, {
-    url: DIRECTUS_URL,
-    name: 'cms',
+    url: 'http://localhost:8055',
+    name: 'directus',
     login: {
       email: 'admin@example.com',
       password: 'd1r3ctu5',
@@ -61,19 +54,170 @@ For this plugin to retrieve **private** data, use the `skd.authenticated` option
   })
 ```
 
-### Filters and shortcodes
+### Available global data
 
-#### Permalinks
+In your templates:
+
+* `directus.collections.${collection}`
+* `directus.collections.all`
+
+In JS:
+
+```js
+const { pages, posts, categories } = await directus.getCollections()
+const settings = await directus.getCollection('settings')
+const all = await directus.getAll()
+all.forEach(item => console.log(`I belong to the collection ${item.collection}`))
+```
+
+### Filters and shortcodes
 
 #### Media URL
 
+* `directus.asseturl`: get the URL from an image object coming from directus collections, e.g. `{% assign url = item.image | asseturl: 'This is a text displayed when an error occures (i.e. to find missing images)' %}`
+
 #### Translation
 
-### 1 collection as a page
+* `directus.translate`: add the `translated` attribute in case it has not one already, for example when the item comes from the user selecting a page in the UI: `{% assign targetPagePerma = item.page | translate: lang, 'page' | permalink: true, 'page' %}`, see `_layouts/nav.js` for a real life example
+
+
+### Collections
+
+Here is how to turn your Directus colections into pages
+
+### Singletons
+
+Here is the [definition of a singleton in Directus](https://docs.directus.io/getting-started/glossary.html#singleton)
+
+> A collection that only contains one single item
+
+Read this on how to [create a singleton in Directus](https://docs.directus.io/configuration/data-model/collections.html#create-a-collection)
+
+In your 11ty website use the singleton data as follows - in this example let's call the singleton `settings`:
+
+```liquid
+{{ directus.settings.some_field }}
+```
+
+### 1 collection as pages
+
+If you have a collection and want every item to have its own page in your website, create a markdown file like this one - in this example let's call the collection `posts`:
+
+```md
+---
+pagination:
+  data: directus.posts
+  size: 1
+  alias: post
+permalink: /example/{{ post.some_field | slug }}/
+
+---
+
+<h1>{{ post.some_field }}</h1>
+
+```
+
+### Directus collections as 11ty collections (example of sitemap)
+
+Let's say you want all the collections which have a field `some_field` to be a collection in 11ty. This can be usefull for the sitemap plugin for example:
+
+```js
+  // In .eleventy.js
+  // Create 1 collection in 11ty out of each collection in Directus
+  eleventyConfig.addCollection('sitemap', async function(collectionApi) {
+    return directus.getAll()
+      .filter(collection => !!collection.some_field) // keep only the Directus collections you want
+      .map(collection => ({
+        ...collection,
+        url: `${BASE_URL}/example/${slugify(collection.some_field)}/`, // add the `url` field required by the sitemap plugin
+      }))
+  })
+  // sitemap plugin
+  eleventyConfig.addPlugin(sitemap, {
+    sitemap: {
+      hostname: BASE_URL,
+    },
+  })
+
+```
 
 ### All collections as pages
 
-### All collections in all languages as pages
+Use the layout `switch` provided by this plugin to automatically select the layout based on the collection name - you need to have a layout with the same name as the collections. You could also use the same technique as the `sitemap` collection above to filter Directus collections and keep only the ones you want to generate pages.
+
+
+```md
+---
+layout: switch
+pagination:
+  data: directus.collections.all
+  size: 1
+  alias: current
+permalink: /example/{{ current.some_field | slug }}/
+
+---
+
+This is the collection of the current item: {{ current.collection }}
+
+It is also the name of the layout used to render this page
+
+```
+
+### Collections in a multi-lingual website
+
+If you use Directus fields of type `translations`, you will probably need to have pages with URLs like these: `/fr/page-1/`, `/en/page-1`, `/fr/page-2/`, ... In that case you need an 11ty collection containing 1 item for each item of a Directus collection **and** for each language of your website:
+
+```json
+[{
+  "title": "bonjour",
+  "lang": "fr",
+}, {
+  "title": "hello",
+  "lang": "en",
+}, {
+  "title": "ca va bien",
+  "lang": "fr",
+}, {
+  "title": "how are you",
+  "lang": "en",
+}]
+```
+
+Here is how to make that happen:
+
+```js
+  // In .eleventy.js
+  eleventyConfig.addCollection('translated', async function(collectionApi) {
+    return directus.getAll()
+      .filter(collection => !!collection.some_field) // keep only the Directus collections you want
+      .flatMap(collection => languages.map(lang => ({
+        ...collection,
+        lang,
+        // store translated data here, e.g.
+        title: title_translations[lang],
+      })))
+  })
+```
+
+Then you can use this collection in a markdown file
+
+```md
+---
+pagination:
+  data: collections.translated
+  size: 1
+  alias: current
+permalink: /{{ current.lang }}/{{ current.some_field | slug }}/
+
+---
+
+<h1>{{ current.title }}</h1> <--- this will be in the current language
+
+This title is in {{ current.lang }}
+
+The permalink of this page includes the current language
+
+```
 
 ### Unit tests
 
