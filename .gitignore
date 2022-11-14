@@ -1,2 +1,3 @@
 node_modules
+_scripts/directus-server/extensions/
 _site

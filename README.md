@@ -74,7 +74,7 @@ all.forEach(item => console.log(`I belong to the collection ${item.collection}`)
 
 #### Media URL
 
-* `directus.asseturl`: get the URL from an image object coming from directus collections, e.g. `{% assign url = item.image | asseturl: 'This is a text displayed when an error occures (i.e. to find missing images)' %}`
+* `directus.asseturl`: get the URL from an image object coming from directus collections, e.g. `{% assign url = item.image | directus.asseturl: 'This is a text displayed when an error occures (i.e. to find missing images)' %}`
 
 #### Translation
 

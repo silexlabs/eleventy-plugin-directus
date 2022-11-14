@@ -1,17 +1,20 @@
 const createClient = require('./client.js')
 const { start, stop } = require('./directus-server/')
 
-jest.setTimeout(10000)
-
 const port = 8056
 const OPTIONS = {
   url: `http://localhost:${port}`,
 }
-const NUM_COLLECTIONS = 3 // page, post, settings
-const IDX_PAGE_COLLECTION = 0 // page collection is at index 0
+const NUM_COLLECTIONS = 5 // page, post, settings, multilingual, languages
 
 beforeAll(async () => {
   return start(port)
+})
+
+let client
+beforeEach(async () => {
+  client = await createClient(OPTIONS)
+  await client.init()
 })
 
 afterAll(async () => {
@@ -28,44 +31,62 @@ describe('init', () => {
   })
   test('Server is up and role "Public" has access to "Directus Collections"', async () => {
     const client = await createClient(OPTIONS)
+    await client.init()
     await expect(client.healthCheck()).resolves.not.toThrow()
     await expect(client.healthCheck()).resolves.toBe(true)
   })
 })
 
 describe('directus data query', () => {
-  let client
-  beforeAll(async () => {
-    client = await createClient(OPTIONS)
-  })
   test('introspection', async () => {
-    await expect(client.getCollections()).resolves.not.toThrow()
-    const collections = await client.getCollections()
+    await expect(client.getDirectusCollections()).resolves.not.toThrow()
+    const collections = await client.getDirectusCollections()
     expect(collections).not.toBeUndefined()
     expect(collections).toBeInstanceOf(Array)
     expect(collections).toHaveLength(NUM_COLLECTIONS)
-    expect(collections[IDX_PAGE_COLLECTION].collection).toBe('page')
+    expect(collections.find(col => col.collection === 'page')).not.toBeUndefined()
   })
   test('get page', async () => {
-    await expect(client.getCollection('page')).resolves.not.toThrow()
-    const page = await client.getCollection('page')
+    await expect(client.getDirectusCollection('page')).resolves.not.toThrow()
+    const page = await client.getDirectusCollection('page')
     expect(page).not.toBeUndefined()
     expect(page).toBeInstanceOf(Array)
     expect(page).toHaveLength(2)
     expect(page[0].title).toBe('Home')
   })
 })
-//     // translations
-//     expect(page[0].page_translations).not.toBeUndefined()
-//     expect(page[0].page_translations.length).toBeGreaterThan(0)
-//     expect(page[0].page_translations[0].description).toContain('Description')
-//     expect(page[0].page_translations[0].languages_code).not.toBeUndefined()
-//     expect(page[0].page_translations[0].languages_code.code).not.toBeUndefined()
-//   })
-//   test('get page', async () => {
-//     await expect(client.getLanguages()).resolves.not.toThrow()
-//     const languages = await client.getLanguages()
-//     expect(languages).not.toBeUndefined()
-//   })
-// })
-// 
+describe('API', () => {
+  test('getCollections', async () => {
+    const {page, post, settings} = await client.getCollections()
+    expect(page).not.toBeUndefined()
+    expect(page).toBeInstanceOf(Array)
+    expect(page.length).toBeGreaterThan(0)
+    expect(page[0].text).toBe('Home page')
+    expect(post).not.toBeUndefined()
+    expect(post).toBeInstanceOf(Array)
+    expect(post.length).toBeGreaterThan(0)
+    expect(post[0].title).toBe('First')
+    expect(settings).not.toBeUndefined()
+    expect(settings).toBeInstanceOf(Object)
+    expect(settings.test_property).toBe('test value')
+  })
+  test('getAll', async () => {
+  })
+  test('collections', async () => {
+  })
+  test('not multilingual', async () => {
+    const {multilingual} = await client.getCollections()
+    expect(multilingual.length).toBe(1)
+  })
+  test('translations', async () => {
+    client = await createClient({
+      ...OPTIONS,
+      translationField: 'multilingual_translations',
+      languageCollection: 'languages',
+    })
+    await client.init()
+    const {multilingual} = await client.getCollections()
+    expect(multilingual.length).toBe(2) // 1 item in 2 lang
+  })
+})
+

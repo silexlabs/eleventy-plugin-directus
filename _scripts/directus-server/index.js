@@ -1,6 +1,7 @@
 const fetch = require('isomorphic-fetch')
-// load directus .env
 const path = require('path')
+// load directus .env
+require('dotenv').config({ path: path.resolve(__dirname, '.env') })
 
 const directus = require('directus')
 const process = require('process')
