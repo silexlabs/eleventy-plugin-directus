@@ -96,7 +96,7 @@ Read this on how to [create a singleton in Directus](https://docs.directus.io/co
 In your 11ty website use the singleton data as follows - in this example let's call the singleton `settings`:
 
 ```liquid
-{{ directus.settings.some_field }}
+{{ directus.collections.settings.some_field }}
 ```
 
 ### 1 collection as pages
@@ -106,7 +106,7 @@ If you have a collection and want every item to have its own page in your websit
 ```md
 ---
 pagination:
-  data: directus.posts
+  data: directus.collections.posts
   size: 1
   alias: post
 permalink: /example/{{ post.some_field | slug }}/
