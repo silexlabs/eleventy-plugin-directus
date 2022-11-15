@@ -4,6 +4,8 @@
 
 Expose [Directus](https://directus.io) collections as global data in 11ty. This will let you access your Directus collections as global data in your 11ty site. By default the data will be available in `directus.collections.*`
 
+This plugin also creates filters to manage assets URLs and translations
+
 ### Usage
 
 1. Install the plugin using npm:
