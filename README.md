@@ -9,13 +9,13 @@ Expose [Directus](https://directus.io) collections as global data in 11ty. This 
 1. Install the plugin using npm:
 
    ```sh
-   npm install @silex/eleventy-plugin-directus
+   npm install @silexlabs/eleventy-plugin-directus
    ```
 
 2. Add the plugin to your `.eleventy.js` config:
 
    ```js
-   const pluginDirectus = require("@silex/eleventy-plugin-directus")
+   const pluginDirectus = require("@silexlabs/eleventy-plugin-directus")
 
    module.exports = (eleventyConfig) => {
      eleventyConfig.addPlugin(pluginDirectus, {
