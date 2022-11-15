@@ -82,10 +82,14 @@ all.forEach(item => console.log(`I belong to the collection ${item.collection}`)
 
 #### Translation
 
-* `directus.translate`: add the `translated` attribute in case it has not one already, for example when the item comes from the user selecting a page in the UI: `{% assign targetPagePerma = item.page | translate: lang, 'page' | permalink: true, 'page' %}`, see `_layouts/nav.js` for a real life example
+Use `directus.translate` filter to get the translated part of a directus collection item:
 
+```liquid
+{% assign translated = item | translate %}
+{{ translated.text }}
+```
 
-### Collections
+### Directus collections and 11ty pages
 
 Here is how to turn your Directus colections into pages
 

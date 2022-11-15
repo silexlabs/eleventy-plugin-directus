@@ -41,7 +41,7 @@ module.exports = (eleventyConfig, _options) => {
 
   // Add filters
   eleventyConfig.addFilter(`${options.name}.asseturl`, image => directus.getAssetUrl(image))
-  eleventyConfig.addFilter(`${options.name}.translate`, collectionItem => directus.translate(collectionItem))
+  eleventyConfig.addFilter(`${options.name}.translate`, (collectionItem, translationField = options.translationField) => directus.translate(collectionItem, translationField))
   // eleventyConfig.addFilter(`${options.name}.alternates`, item => {
   //   const languages = await this.getLanguages() || [{code: ''}]
   //   async getAlternates(item) {
