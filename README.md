@@ -29,6 +29,8 @@ This plugin also creates filters to manage assets URLs and translations
 
 ### Troubleshooting
 
+`directus_collections` need to be readable, as well as the other collections you want to access in your 11ty website
+
 For this plugin to retrieve **public** data, check the permissions for the public role in directus
 
 For this plugin to retrieve **private** data, use the `skd.authenticated` option, see "Advanced options" section bellow
