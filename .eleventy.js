@@ -1,37 +1,48 @@
 const createClient = require('./_scripts/client')
 //const { translate, permalink, absolute, alternate, addContext } = require('_scripts/utils')
 
-module.exports = (eleventyConfig, options) => {
+module.exports = (eleventyConfig, _options) => {
   const defaults = {
     url: 'http://localhost:8055',
     name: 'directus',
     showDraft: true,
     allowHidden: false,
     allowSystem: false,
-    languageCollection: 'languages',
-    translationField: 'translations',
-    // translationField: collection => `${collection}_translations`,
+    //languageCollection: 'languages',
+    translationField: collection => `${collection}_translations`,
+    //translationField: 'translations',
+  }
+
+  const options = {
+    ...defaults,
+    ..._options,
   }
 
   const directus = createClient({
-    ...defaults,
-    ...options,
+    url: options.url,
+    showDraft: options.showDraft,
+    allowHidden: options.allowHidden,
+    allowSystem: options.allowSystem,
+    login: options.login,
+    token: options.token,
+    auth: options.auth,
   })
 
-  // Check that we can connect to directus
-  directus.healthCheck()
-    .then(ok => !ok && console.error('ERROR: could not connect to Directus\n\nIs Directus running? Do we have access to "Directus Collections"?\n\n'))
-  
   // Add global data and init
-  eleventyConfig.addGlobalData('directus', async () => {
+  eleventyConfig.addGlobalData(options.name, async () => {
+    // init the client
     await directus.init()
+    // Check that we can connect to directus
+    if(!await directus.healthCheck()) {
+      console.error('ERROR: could not connect to Directus\n\nIs Directus running? Do we have access to "Directus Collections"?\n\n')
+    }
     return directus
   })
 
   // Add filters
-  eleventyConfig.addFilter('directus.asseturl', image => directus.getAssetUrl(image))
-  eleventyConfig.addFilter('directus.translate', collectionItem => directus.translate(collectionItem))
-  // eleventyConfig.addFilter('directus.alternates', item => {
+  eleventyConfig.addFilter(`${options.name}.asseturl`, image => directus.getAssetUrl(image))
+  eleventyConfig.addFilter(`${options.name}.translate`, collectionItem => directus.translate(collectionItem))
+  // eleventyConfig.addFilter(`${options.name}.alternates`, item => {
   //   const languages = await this.getLanguages() || [{code: ''}]
   //   async getAlternates(item) {
   //     if(!item) throw new Error('Error: canot get alternates of an undefined item')

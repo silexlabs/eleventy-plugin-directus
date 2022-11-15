@@ -6,7 +6,9 @@
   "main": ".eleventy.js",
   "scripts": {
     "start": "eleventy --serve",
-    "directus": "cd _scripts/directus-server/ && directus start",
+    "directus:start": "node _scripts/directus-server/",
+    "directus:snapshot": "cd _scripts/directus-server/ && directus schema snapshot --yes ./snapshot.yaml",
+    "directus:snapshot:apply": "cd _scripts/directus-server/ && directus schema apply ./snapshot.yaml",
     "build": "eleventy",
     "test": "jest",
     "bump": "npm --no-git-tag-version version"

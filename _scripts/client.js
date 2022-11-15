@@ -33,7 +33,6 @@ class Client {
     this.login = login
     this.token = token
     this.languageCollection = languageCollection
-    this.translationField = translationField
     this.showDraft = showDraft
     this.initDone = false
     this.eleventyCollections = null
@@ -194,10 +193,6 @@ class Client {
             if(this.languages) {
               for(const lang of this.languages) {
                 const processed = this.processCollectionItem(name, item, lang)
-                if(processed.modules) {
-                  processed.modules = processed.modules
-                    .map(module => this.processCollectionItem(module.collection, module.item, lang))
-                }
                 if(item.page_type !== '404' || has404 === false) {
                   has404 = has404 || item.page_type === '404'
                   // Add the item
@@ -208,7 +203,7 @@ class Client {
               }
             } else {
               // happen when first getting the languages
-              result.push(item)
+              result.push(this.processCollectionItem(name, item))
             }
           }
         }
@@ -221,24 +216,22 @@ class Client {
       }
     } else {
       // this is not supposed to happen
-      console.log('Error: directus returned null as the collection items', name)
+      console.error('Error: directus returned null as the collection items', name)
     }
   }
   /**
    * @param name The name of the collection
    * @param item The collection item
-   * @param lang The current language
+   * @param lang The current language (optional)
    * @return
    */
   processCollectionItem(name, item, lang) {
     // Add collection
-    const completedItem = {
+    return {
       ...item,
+      lang,
       collection: name,
     }
-
-    // Add the translation if any
-    return this.translate(completedItem, lang)
   }
   /**
    * @returns {Array.<Array.<Item>>} an array of collections, each collection being an array of items which have the directus data of a record
@@ -265,34 +258,42 @@ class Client {
     // get the file from directus API
     return `${this.url}/assets/${image.filename_disk}`
   }
-  getTranslationField(collection) {
-    if(typeof this.translationField === 'function') {
-      return this.translationField(collection)
-    } else {
-      return this.translationField
-    }
-  }
-  translate(item, lang, name = item?.collection) {
-    if(!item) throw new Error('Error: canot translate item, item is undefined')
-    if(!name) throw new Error('Error: canot translate item, collection name is undefined')
+}
 
-    const lang_code = lang?.code ?? lang
-    const translated = item[this.getTranslationField(name)]
-      // Here translation.languages_code is either an object (case of main collections such as page or post)
-      // or a language code (case of modules)
-      ?.find(translation => translation.languages_code === lang_code || translation.languages_code?.code === lang_code)
-    return {
-      ...item,
-      // Add language property
-      lang: lang_code,
-      // Move the translated fields to the translated property
-      translated,
-    }
+// filters
+function getTranslationField(collection, translationField) {
+  if(typeof translationField === 'function') {
+    return translationField(collection)
+  } else {
+    return translationField
   }
+}
+/**
+ * @param item An item as returned by Client::get11tyCollection
+ * @param lang Either a string, e.g. "en-US" or an object, e.g. {code: "en-US"}
+ * @param name The collection name
+ * @param translationField Either a string, e.g. "multilingual_translations" or a function, e.g. collection => `${collection}_translations`
+ */
+function translate(item, translationField) {
+  if(!item) throw new Error('Error: canot translate item, item is undefined')
+  const {collection, lang} = item
+  if(!collection) throw new Error('Error: canot translate item, collection name is undefined')
+  if(!lang) return null // not multilingual
+
+  const lang_code = lang?.code ?? lang
+  const field = getTranslationField(collection, translationField)
+  if(field && item[field]) {
+    const translated = item[field]
+      ?.find(translation => !!Object.keys(translation)
+        .find(key => translation[key]?.code === lang_code) // any key with property `code` will do
+      )
+    return translated
+  }
+  return null
 }
 
 module.exports = function createClient(options) {
   return new Client(options)
 }
 
-exports.Client = Client
+module.exports.translate = translate

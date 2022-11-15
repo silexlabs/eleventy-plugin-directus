@@ -36,10 +36,14 @@ For this plugin to retrieve **private** data, use the `skd.authenticated` option
 | Variable name | Desctiption | Default |
 | -- | -- | -- |
 | url | Directus server root URL | `http://localhost:8055` |
-| name | Name of the global data key | `directus` |
+| name | Name of the global data key and prefix of the filters | `directus` |
 | auth | Object passed to [Directus SDK's constructor as the `auth` option](https://docs.directus.io/reference/sdk.html#auth) | - (optional, this is useful for custom auth implementations only) |
 | login | Object passed to [Directus SDK's `auth.login` method](https://docs.directus.io/reference/sdk.html#login) | - (optional, this is useful to retrieve private data only) |
 | token | String passed to [Directus SDK's `auth.static` method](https://docs.directus.io/reference/sdk.html#login) | - (optional, this is useful to retrieve private data only) |
+| translationField | string or function(collectionName) | collection => `${collection}_translations` |
+| showDraft | | |
+| allowHidden | | |
+| allowSystem | | |
 
 ### Config Examples
 

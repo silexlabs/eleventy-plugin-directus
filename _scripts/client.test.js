@@ -1,4 +1,5 @@
 const createClient = require('./client.js')
+const { translate } = require('./client.js')
 const { start, stop } = require('./directus-server/')
 
 const port = 8056
@@ -77,6 +78,7 @@ describe('API', () => {
   test('not multilingual', async () => {
     const {multilingual} = await client.getCollections()
     expect(multilingual.length).toBe(1)
+    expect(translate(multilingual[0], 'multilingual_translations')).toBeNull()
   })
   test('translations', async () => {
     client = await createClient({
@@ -87,6 +89,22 @@ describe('API', () => {
     await client.init()
     const {multilingual} = await client.getCollections()
     expect(multilingual.length).toBe(2) // 1 item in 2 lang
+    expect(multilingual[0].lang).not.toBeUndefined()
+  })
+  test('translate filter', async () => {
+    client = await createClient({
+      ...OPTIONS,
+      translationField: 'multilingual_translations',
+      languageCollection: 'languages',
+    })
+    await client.init()
+    const {multilingual} = await client.getCollections()
+    const item = multilingual[0]
+    expect(item.translated).toBeUndefined()
+    const translated = translate(item, 'multilingual_translations')
+    expect(translated).not.toBeUndefined()
+    expect(translated.text).not.toBeUndefined()
+    expect(translated.text.startsWith('text '))
   })
 })
 
