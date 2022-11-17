@@ -5,12 +5,10 @@ module.exports = (eleventyConfig, _options) => {
   const defaults = {
     url: 'http://localhost:8055',
     name: 'directus',
-    showDraft: true,
-    allowHidden: false,
+    allowHidden: true,
     allowSystem: false,
-    //languageCollection: 'languages',
-    translationField: collection => `${collection}_translations`,
-    //translationField: 'translations',
+    onItem: item => item,
+    filterCollection: ({collection, meta}) => true,
   }
 
   const options = {
@@ -20,7 +18,6 @@ module.exports = (eleventyConfig, _options) => {
 
   const directus = createClient({
     url: options.url,
-    showDraft: options.showDraft,
     allowHidden: options.allowHidden,
     allowSystem: options.allowSystem,
     login: options.login,
@@ -31,7 +28,7 @@ module.exports = (eleventyConfig, _options) => {
   // Add global data and init
   eleventyConfig.addGlobalData(options.name, async () => {
     // init the client
-    await directus.init()
+    await directus.init(options.onItem, options.filterCollection)
     // Check that we can connect to directus
     if(!await directus.healthCheck()) {
       console.error('ERROR: could not connect to Directus\n\nIs Directus running? Do we have access to "Directus Collections"?\n\n')
@@ -40,8 +37,8 @@ module.exports = (eleventyConfig, _options) => {
   })
 
   // Add filters
-  eleventyConfig.addFilter(`${options.name}.asseturl`, image => directus.getAssetUrl(image))
-  eleventyConfig.addFilter(`${options.name}.translate`, (collectionItem, translationField = options.translationField) => directus.translate(collectionItem, translationField))
+  eleventyConfig.addFilter(`${options.name}_asseturl`, (...args) => directus.getAssetUrl(...args))
+  eleventyConfig.addFilter(`${options.name}_translate`, (...args) => directus.translate(...args))
   // eleventyConfig.addFilter(`${options.name}.alternates`, item => {
   //   const languages = await this.getLanguages() || [{code: ''}]
   //   async getAlternates(item) {

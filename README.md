@@ -25,7 +25,7 @@ This plugin also creates filters to manage assets URLs and translations
      })
    }
    ```
-3. Run or build your Eleventy project and use the global `directus` data variable to access your collections
+3. Run or build your Eleventy project and use the global `directus.collections` data variable to access your collections
 
 ### Troubleshooting
 
@@ -44,8 +44,8 @@ For this plugin to retrieve **private** data, use the `skd.authenticated` option
 | auth | Object passed to [Directus SDK's constructor as the `auth` option](https://docs.directus.io/reference/sdk.html#auth) | - (optional, this is useful for custom auth implementations only) |
 | login | Object passed to [Directus SDK's `auth.login` method](https://docs.directus.io/reference/sdk.html#login) | - (optional, this is useful to retrieve private data only) |
 | token | String passed to [Directus SDK's `auth.static` method](https://docs.directus.io/reference/sdk.html#login) | - (optional, this is useful to retrieve private data only) |
-| translationField | string or function(collectionName) | collection => `${collection}_translations` |
-| showDraft | | |
+| onItem | A callback to modify each item while collections are created. Use `item.collection` if you need to take the collection name into account. | item => item |
+| filterCollection | | |
 | allowHidden | | |
 | allowSystem | | |
 
@@ -72,6 +72,7 @@ In your templates:
 In JS:
 
 ```js
+const directus = await  eleventyConfig.globalData.cms()
 const { pages, posts, categories } = await directus.getCollections()
 const settings = await directus.getCollection('settings')
 const all = await directus.getAll()
@@ -82,16 +83,35 @@ all.forEach(item => console.log(`I belong to the collection ${item.collection}`)
 
 #### Media URL
 
-* `directus.asseturl`: get the URL from an image object coming from directus collections, e.g. `{% assign url = item.image | directus.asseturl: 'This is a text displayed when an error occures (i.e. to find missing images)' %}`
+* `directus_asseturl`: get the URL from an image object coming from directus collections, e.g. `{% assign url = item.image | directus_asseturl: 'This is a text displayed when an error occures (i.e. to find missing images)' %}`
 
 #### Translation
 
-Use `directus.translate` filter to get the translated part of a directus collection item:
+Use the translate filter to get the translated part of a directus collection item:
+
+In your layouts:
 
 ```liquid
-{% assign translated = item | translate %}
+{% assign translated = item | directus_translate %}
 {{ translated.text }}
 ```
+
+In JS data files:
+
+```js
+directus.translate(item, "page_translations")
+```
+
+What this filter does is find the item language (`item.lang`) in `item[item.collection + "_translations"]` and merge its content into item
+
+### Collection's items data
+
+Each `directus.collection` is an array of items or an item (case of a singleton), with items look like this:
+
+| attribute | description |
+| -- | -- |
+| collection | Name of the item's collection. |
+| All other attributes | The attributes you define in Directus |
 
 ### Directus collections and 11ty pages
 
@@ -137,6 +157,7 @@ Let's say you want all the collections which have a field `some_field` to be a c
   // In .eleventy.js
   // Create 1 collection in 11ty out of each collection in Directus
   eleventyConfig.addCollection('sitemap', async function(collectionApi) {
+    const directus = await  eleventyConfig.globalData.cms()
     return directus.getAll()
       .filter(collection => !!collection.some_field) // keep only the Directus collections you want
       .map(collection => ({
@@ -155,8 +176,15 @@ Let's say you want all the collections which have a field `some_field` to be a c
 
 ### All collections as pages
 
-Use the layout `switch` provided by this plugin to automatically select the layout based on the collection name - you need to have a layout with the same name as the collections. You could also use the same technique as the `sitemap` collection above to filter Directus collections and keep only the ones you want to generate pages.
+Use the following layout (`switch`) automatically selects the layout based on the collection name - you need to have a layout with the same name as the collections. You could also use the same technique as the `sitemap` collection above to filter Directus collections and keep only the ones you want to generate pages.
 
+The `switch` layout:
+
+```liquidjs
+{% assign layout = '_layouts/' | append: current.collection | default: 'default' | append: '.html' %}
+{% layout layout %}
+
+```
 
 ```md
 ---
@@ -195,19 +223,24 @@ If you use Directus fields of type `translations`, you will probably need to hav
 }]
 ```
 
-Here is how to make that happen:
+Here is how to make that happen - let's say your language collection is named `languages` in directus:
 
 ```js
   // In .eleventy.js
   eleventyConfig.addCollection('translated', async function(collectionApi) {
+    const directus = await  eleventyConfig.globalData.cms()
     return directus.getAll()
-      .filter(collection => !!collection.some_field) // keep only the Directus collections you want
-      .flatMap(collection => languages.map(lang => ({
-        ...collection,
-        lang,
-        // store translated data here, e.g.
-        title: title_translations[lang],
+      .flatMap(item => directus.collections.languages.map(({code}) => ({
+        ...item,
+        lang: code,
       })))
+      .map(item => ({
+        ...item,
+        // store translated data here, e.g.
+        translated: directus.translate(item, `${item.collection}_translations`),
+        // or for the example above
+        ...directus.translate(item, `${item.collection}_translations`),
+      }))
   })
 ```
 

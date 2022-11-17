@@ -22,9 +22,6 @@ class Client {
     auth,
     login,
     token,
-    languageCollection,
-    translationField,
-    showDraft,
     allowHidden,
     allowSystem,
   }) {
@@ -32,11 +29,8 @@ class Client {
     this.url = url
     this.login = login
     this.token = token
-    this.languageCollection = languageCollection
-    this.showDraft = showDraft
     this.initDone = false
     this.eleventyCollections = null
-    this.languages = null
     this.allowHidden = allowHidden
     this.allowSystem = allowSystem
 
@@ -56,27 +50,24 @@ class Client {
           return aggr
         }, {})
     })
-    this.collections = memoize(() => {
-      return {
-        ...this.getCollections(),
-        all: this.getAll(),
-      }
-    })
+  }
+  get collections() {
+    return {
+      ...this.getCollections(),
+      all: this.getAll(),
+    }
   }
   /**
    * Init directus client
    */
-  async init() {
-    if(this.initDone) throw new Error('Directus client already initialized');
+  async init(onItem, filterCollection) {
+    if(this.initDone) {
+      return;
+    }
     this.initDone = true
     this.login && await this.directus.auth.login(this.login)
     this.token && await this.directus.auth.static(this.token)
-    this.directusCollections = await this.getDirectusCollections()
-    this.languages = this.languageCollection && await this.get11tyCollection({
-      name: this.languageCollection,
-      singleton: false,
-    })
-    this.eleventyCollections = await this.get11tyCollectionsExpanded()
+    this.eleventyCollections = await this.get11tyCollectionsExpanded(onItem, filterCollection)
   }
   /**
    * Check that directus is reachable
@@ -119,7 +110,7 @@ class Client {
    * Get the content of a collection
    * @param name The name of the collection
    * @param options An optional object which will be passed to [directus.items](https://docs.directus.io/reference/sdk.html#items) method, defaults to {}
-   * @returns An object containing `meta`, `collection` (the name of the collection)
+   * @returns {meta, collection} An object containing `meta`, `collection` (the name of the collection)
    */
   async getDirectusCollection(name, options = {}) {
     try {
@@ -159,60 +150,33 @@ class Client {
   /**
    * @return A list of all the collections in directus, with attributes: name, sigleton
    */
-  async get11tyCollections() {
+  async get11tyCollections(filterCollection) {
     const collections = await this.getDirectusCollections()
-    const results = []
-    for(const data of collections) {
-      const result = []
-      if(data.schema) {
-        results.push({
-          name: data.collection,
-          singleton: data.meta.singleton,
-        })
-      } else {
-        // this is probably a folder in directus data model
-      }
-    }
-    return results
+    return collections
+      .filter(({schema}) => !!schema)
+      .filter(filterCollection)
+      .map(data => ({
+        name: data.collection,
+        singleton: data.meta.singleton,
+      }))
   }
   /**
    * @param collection, the object returned by get11tyCollections
-   * @return Array of items or a singleton object, one for each language and element in the collection
+   * @return Array of items or a singleton object, each with 
    */
   async get11tyCollection({ name, singleton }) {
     const items = await this.getDirectusCollection(name)
     if(items) {
       if(!singleton) {
-        const result = []
-        let has404 = false
-        // For each collection item in directus
-        for(const item of items) {
-          // check the status
-          if(!item.status || item.status === 'published' || (this.showDraft && item.status === 'draft')) {
-            // For each lang if any language collection
-            if(this.languages) {
-              for(const lang of this.languages) {
-                const processed = this.processCollectionItem(name, item, lang)
-                if(item.page_type !== '404' || has404 === false) {
-                  has404 = has404 || item.page_type === '404'
-                  // Add the item
-                  result.push({
-                    ...processed,
-                  })
-                }
-              }
-            } else {
-              // happen when first getting the languages
-              result.push(this.processCollectionItem(name, item))
-            }
-          }
-        }
-        return result
+        return items.map(item => ({
+          ...item,
+          collection: name,
+        }))
       } else {
-        // Add the collection name
-        items.collection = name
-        // return the singleton object
-        return items
+        return {
+          ...items,
+          collection: name,
+        }
       }
     } else {
       // this is not supposed to happen
@@ -220,31 +184,30 @@ class Client {
     }
   }
   /**
-   * @param name The name of the collection
-   * @param item The collection item
-   * @param lang The current language (optional)
-   * @return
-   */
-  processCollectionItem(name, item, lang) {
-    // Add collection
-    return {
-      ...item,
-      lang,
-      collection: name,
-    }
-  }
-  /**
    * @returns {Array.<Array.<Item>>} an array of collections, each collection being an array of items which have the directus data of a record
    * @example (await get11tyCollectionsExpanded(true))[0][0].id
    * @example (await get11tyCollectionsExpanded(true))[0].__metadata.name
    */
-  async get11tyCollectionsExpanded() {
-    const collections = await this.get11tyCollections()
+  async get11tyCollectionsExpanded(onItem, filterCollection) {
+    const collections = await this.get11tyCollections(filterCollection)
     return Promise.all(collections.map(async collection => {
       const data = await this.get11tyCollection(collection)
-      data.__metadata = collection // this adds a property to the array, not so intuitive
-      return data
+      if(!data) {
+        console.warn('WARN: directus did not return any data for collection', collection)
+        return null
+      }
+      if(collection.singleton) {
+        data.__metadata = collection // FIXME: this adds a property to the array
+        return data
+      }
+      const res = data
+        .map(onItem)
+      res.__metadata = collection // FIXME: this adds a property to the array
+      return res
     }))
+    .then(collections => collections
+      .filter(collection => !!collection) // filter the cases when directus errored
+    )
   }
   getAssetUrl(image) {
     if(!image) {
@@ -258,42 +221,42 @@ class Client {
     // get the file from directus API
     return `${this.url}/assets/${image.filename_disk}`
   }
+  /**
+   * @param item An item as returned by Client::get11tyCollection
+   * @param lang Either a string, e.g. "en-US" or an object, e.g. {code: "en-US"}
+   * @param name The collection name
+   */
+  translate(item, translationField, lang = item.lang, collection = item.collection) {
+    if(!item) throw new Error('Error: canot translate item, item is undefined')
+    if(!lang) return null // not multilingual
+
+    const lang_code = lang?.code ?? lang
+    const field = getTranslationField(collection, translationField)
+    if(field && item[field]) {
+      const translated = item[field]
+        ?.find(translation => !!Object.keys(translation)
+          .find(key => translation[key]?.code === lang_code) // any key with property `code` will do
+        )
+      return {
+        ...item,
+        lang,
+        collection,
+        ...translated,
+      }
+    }
+    return item
+  }
 }
 
-// filters
-function getTranslationField(collection, translationField) {
+function getTranslationField(collection, translationField = `${collectionItem}_translations`) {
   if(typeof translationField === 'function') {
     return translationField(collection)
   } else {
     return translationField
   }
 }
-/**
- * @param item An item as returned by Client::get11tyCollection
- * @param lang Either a string, e.g. "en-US" or an object, e.g. {code: "en-US"}
- * @param name The collection name
- * @param translationField Either a string, e.g. "multilingual_translations" or a function, e.g. collection => `${collection}_translations`
- */
-function translate(item, translationField) {
-  if(!item) throw new Error('Error: canot translate item, item is undefined')
-  const {collection, lang} = item
-  if(!collection) throw new Error('Error: canot translate item, collection name is undefined')
-  if(!lang) return null // not multilingual
-
-  const lang_code = lang?.code ?? lang
-  const field = getTranslationField(collection, translationField)
-  if(field && item[field]) {
-    const translated = item[field]
-      ?.find(translation => !!Object.keys(translation)
-        .find(key => translation[key]?.code === lang_code) // any key with property `code` will do
-      )
-    return translated
-  }
-  return null
-}
 
 module.exports = function createClient(options) {
   return new Client(options)
 }
 
-module.exports.translate = translate
