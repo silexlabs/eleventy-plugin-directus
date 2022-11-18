@@ -1,5 +1,7 @@
 ## Eleventy Plugin Directus
 
+![combined](https://user-images.githubusercontent.com/715377/202714740-44db41be-27a7-42d9-aa58-8d72d486bcbf.png)
+
 > This plugin is a work in progress, we use it in production at [Internet 2000](https://internet2000.net), PRs welcome
 
 Expose [Directus](https://directus.io) collections as global data in 11ty. This will let you access your Directus collections as global data in your 11ty site. By default the data will be available in `directus.collections.*`
