@@ -200,9 +200,10 @@ class Client {
         data.__metadata = collection // FIXME: this adds a property to the array
         return data
       }
-      const res = data
-        .map(onItem)
+      
+      let res = await Promise.all(data.map(onItem));
       res.__metadata = collection // FIXME: this adds a property to the array
+
       return res
     }))
     .then(collections => collections
