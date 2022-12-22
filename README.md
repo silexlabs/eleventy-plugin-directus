@@ -89,22 +89,29 @@ all.forEach(item => console.log(`I belong to the collection ${item.collection}`)
 
 #### Translation
 
-Use the translate filter to get the translated part of a directus collection item:
+Use the translate filter to get the translated part of a directus collection item
 
-In your layouts:
+Let's say you have a directus collection called "post" containing a list of posts. In this collection you have 2 text fields: `non-translated-text` and a "translation field" called `translation_field`. In the collection "translation_field", you have just one field called `translated-text`
+
+In your layouts use the filter to find the appropriate language and merge the translation with the item itself:
 
 ```liquid
-{% assign translated = item | directus_translate %}
-{{ translated.text }}
+{% for item in directus.collections.posts %}
+  {% assign translated = item | directus_translate: "translation_field", "fr" %}
+  {{ translated.non-translated-text }} This will output the value of the non translated field
+  {{ translated.translated-text }} This will output the value of the non translated field  
+{% endfor %}
 ```
 
-In JS data files:
+Or in a JS data files:
 
 ```js
-directus.translate(item, "page_translations")
+directus.translate(item, "page_translations", "en")
 ```
 
 What this filter does is find the item language (`item.lang`) in `item[item.collection + "_translations"]` and merge its content into item
+
+> Please ask in the issues if this example is not clear
 
 ### Collection's items data
 
