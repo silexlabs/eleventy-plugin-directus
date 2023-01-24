@@ -12,7 +12,7 @@ This plugin also creates filters to manage assets URLs and translations
 
 Use this plugin to
 
-* Access directus collections from your 11ty templates, e.g. `{% for collection in directus.collections.some_collection %}` or `{{ directus.collections.some_singleton }}`
+* Access directus collections from your 11ty templates, e.g. `{% for collection in directus.collections.some_collection %}` or `{{ directus.collections.some_singleton.some_field }}`
 * Easy nested collections (many to many / one to many / m2a fields), e.g. `{{ directus.collections.some_singleton.some_field_many_to_many.some_field_in_nested_collection }}`
 * Use translations for multi-lingual sites, e.g. `{% assign translated = directus.collections.some_singleton | directus_translate: "translation_field", "fr" %}{{ translated.some_field_from_translated_collection }}`
 * Render any collection with different layouts depending on the collection, e.g. render the `page` collection the `pages.liquid` and all `post` items in directus with `posts.liquid` in 11ty's `_layout` folder
