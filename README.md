@@ -4,9 +4,9 @@
 
 > This plugin is a work in progress, we use it in production at [Internet 2000](https://internet2000.net), PRs welcome
 
-Expose [Directus](https://directus.io) collections as global data in 11ty. This will let you access your Directus collections as global data in your 11ty site. By default the data will be available in `directus.collections.*`
+Expose [Directus](https://directus.io) collections as [global data in 11ty](https://www.11ty.dev/docs/data-global/). By default the data will be available in `directus.collections.*`
 
-This plugin also creates filters to manage assets URLs and translations
+This plugin also creates [filters to manage assets URLs and translations](#filters-and-shortcodes), creates a `directus.collections.all` collection, and will help you [make pages out of Directus collections](#directus-collections-and-11ty-pages).
 
 ### Use cases
 
