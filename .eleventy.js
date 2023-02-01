@@ -25,21 +25,17 @@ module.exports = (eleventyConfig, _options) => {
     auth: options.auth,
   })
 
-  // Check that we can connect to directus
-  directus.healthCheck()
-  .then(ok => {
-    if(!ok) {
-      console.error('ERROR: could not connect to Directus\n\nIs Directus running? Do we have access to "Directus Collections"?\n\n')
-    }
-  })
-  .catch(e => {
-    console.error(`ERROR: could not connect to Directus\n\n${e}\n\n`)
-  })
-
   // Add global data and init
+  let healthOk = false
   eleventyConfig.addGlobalData(options.name, async () => {
     // init the client
     await directus.init(options.onItem, options.filterCollection)
+    // Check that we can connect to directus
+    if(!healthOk && !await directus.healthCheck()) {
+      throw new Error('ERROR: could not connect to Directus\n\nIs Directus running? Do we have access to "Directus Collections"?\n\n')
+    }
+    // Check only once
+    healthOk = true
     return directus
   })
 
