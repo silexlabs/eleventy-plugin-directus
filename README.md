@@ -2,11 +2,31 @@
 
 ![combined](https://user-images.githubusercontent.com/715377/202714740-44db41be-27a7-42d9-aa58-8d72d486bcbf.png)
 
-> This plugin is a work in progress, we use it in production at [Internet 2000](https://internet2000.net), PRs welcome
+### Abbout this plugin
 
 Expose [Directus](https://directus.io) collections as [global data in 11ty](https://www.11ty.dev/docs/data-global/). By default the data will be available in `directus.collections.*`
 
 This plugin also creates [filters to manage assets URLs and translations](#filters-and-shortcodes), creates a `directus.collections.all` collection, and will help you [make pages out of Directus collections](#directus-collections-and-11ty-pages).
+
+> This plugin is a work in progress, we use it in production at [Internet 2000](https://internet2000.net), PRs welcome
+
+Following [this discussion](https://github.com/directus/directus/discussions/17293) with [@rijkvanzanten](https://github.com/rijkvanzanten), lead maintainer of Directus, I need your input on how to make this plugin better, as it depends on the use cases. So please head to [this discussion and let's talk use cases](https://github.com/directus/directus/discussions/17293)
+
+### Why this plugin?
+
+[11ty](https://www.11ty.dev/) static site generator and [Directus](https://directus.io/) headless CMS are excellent tools, both open source and part of the JS ecosystem. They work very well together, they make a great tech stack for static and dynamic sites, and even web apps. They share a "simple is beautiful" philosophy, they are based on open standards to a great extent, and get more complex as your needs grow.
+
+As we use 11ty+Directus a lot at [internet 2000 web studio](https://internet2000.net/) to produce eco-friendly websites, it made sense to open source this part of our code.
+
+Also please note we use [Silex website builder](https://www.silex.me/) with 11ty+Directus as this no-code tool also has a lot in commong with Directus.
+
+### Why a plugin at all?
+
+As you can see on [this official blog post](https://directus.io/guides/get-started-building-an-eleventy-website-with-directus/), it is easy to import Directus data into an 11ty website. With this direct approach, this is how [11ty data file which fetches Directus content](https://github.com/directus/examples/blob/main/eleventy/src/_data/articles.js#L35).
+
+The problem with this approach is that you will need to explicitely re-define your content structure a second time, as you already made the structure in Directus.
+
+What this plugin does is to retrieve all the data recursively from Directus and then you can use it from your templates with the "dot notation" as JSON objects. The drawback this approach - at least as it is implemented for now, is that uses [a "simple" / hacky approach](./_scripts/client.js#L8) to just fetch everything up front, even a lot more data than you need when you have a recursive relationship, e.g. `articles->related_articles->articles` - [see discussion here](https://github.com/directus/directus/discussions/17293).
 
 ### Use cases
 
