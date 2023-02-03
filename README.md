@@ -24,9 +24,9 @@ Also please note we use [Silex website builder](https://www.silex.me/) with 11ty
 
 As you can see on [this official blog post](https://directus.io/guides/get-started-building-an-eleventy-website-with-directus/), it is easy to import Directus data into an 11ty website. With this direct approach, this is how [11ty data file which fetches Directus content](https://github.com/directus/examples/blob/main/eleventy/src/_data/articles.js#L35).
 
-The problem with this approach is that you will need to explicitely re-define your content structure a second time, as you already made the structure in Directus.
+The problem with this approach is that you will need to explicitely re-define your content structure a second time, as you already made the structure in Directus. It also requires redondant glue code for each collection you want to use in your templates.
 
-What this plugin does is to retrieve all the data recursively from Directus and then you can use it from your templates with the "dot notation" as JSON objects. The drawback this approach - at least as it is implemented for now, is that uses [a "simple" / hacky approach](./_scripts/client.js#L8) to just fetch everything up front, even a lot more data than you need when you have a recursive relationship, e.g. `articles->related_articles->articles` - [see discussion here](https://github.com/directus/directus/discussions/17293).
+What this plugin does is to retrieve all the data recursively from Directus and then you can use it from your templates with the "dot notation" as JSON objects. The drawback this approach - at least as it is implemented for now, is that uses [a "simple" / hacky approach](./_scripts/client.js#L8) to just fetch everything up front, even a lot more data than you need when you have a recursive relationship, e.g. `articles->related_articles->articles` - [see discussion here](https://github.com/directus/directus/discussions/17293). Until now this hasn't been a problem for us as it is data that is exposed to templates and then forgotten, but feel free to discuss any better implementation details.
 
 ### Use cases
 
