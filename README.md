@@ -8,9 +8,13 @@ Expose [Directus](https://directus.io) collections as [global data in 11ty](http
 
 This plugin also creates [filters to manage assets URLs and translations](#filters-and-shortcodes), creates a `directus.collections.all` collection, and will help you [make pages out of Directus collections](#directus-collections-and-11ty-pages).
 
-> This plugin is a work in progress, we use it in production at [Internet 2000](https://internet2000.net), PRs welcome
+### Disclaimer
+
+This plugin is a work in progress, we use it in production at [Internet 2000](https://internet2000.net), PRs welcome
 
 Following [this discussion](https://github.com/directus/directus/discussions/17293) with [@rijkvanzanten](https://github.com/rijkvanzanten), lead maintainer of Directus, I need your input on how to make this plugin better, as it depends on the use cases. So please head to [this discussion and let's talk use cases](https://github.com/directus/directus/discussions/17293)
+
+Also we should make this plugin compatible with [11ty i18n/internationalization mechanism](https://www.11ty.dev/docs/plugins/i18n/#installation) as for now it has a simple but different mechanism - see the `directus_translate` filter
 
 ### Why this plugin?
 
