@@ -227,7 +227,7 @@ class Client {
    * @param lang Either a string, e.g. "en-US" or an object, e.g. {code: "en-US"}
    * @param name The collection name
    */
-  translate(item, translationField, lang = item.lang, collection = item.collection) {
+  translate(item, translationField, lang = item?.lang, collection = item?.collection) {
     if(!item) throw new Error('Error: canot translate item, item is undefined')
 
     const lang_code = lang?.code ?? lang
