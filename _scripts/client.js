@@ -60,7 +60,7 @@ class Client {
   /**
    * Init directus client
    */
-  async init(onItem, filterCollection) {
+  async init(onItem = item => item, filterCollection = () => true) {
     if(this.initDone) {
       return;
     }
@@ -152,6 +152,7 @@ class Client {
    */
   async get11tyCollections(filterCollection) {
     const collections = await this.getDirectusCollections()
+    if(!filterCollection) throw new Error('Missing parameter filterCollection')
     return collections
       .filter(({schema}) => !!schema)
       .filter(filterCollection)

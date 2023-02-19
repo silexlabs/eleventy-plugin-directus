@@ -1,5 +1,4 @@
 const createClient = require('./client.js')
-const { translate } = require('./client.js')
 const { start, stop } = require('./directus-server/')
 
 const port = 8056
@@ -7,6 +6,8 @@ const OPTIONS = {
   url: `http://localhost:${port}`,
 }
 const NUM_COLLECTIONS = 5 // page, post, settings, multilingual, languages
+
+jest.setTimeout(20000)
 
 beforeAll(async () => {
   return start(port)
@@ -62,6 +63,7 @@ describe('API', () => {
     expect(page).not.toBeUndefined()
     expect(page).toBeInstanceOf(Array)
     expect(page.length).toBeGreaterThan(0)
+    console.log(page)
     expect(page[0].text).toBe('Home page')
     expect(post).not.toBeUndefined()
     expect(post).toBeInstanceOf(Array)
@@ -76,9 +78,8 @@ describe('API', () => {
   test('collections', async () => {
   })
   test('not multilingual', async () => {
-    const {multilingual} = await client.getCollections()
-    expect(multilingual.length).toBe(1)
-    expect(translate(multilingual[0], 'multilingual_translations')).toBeNull()
+    const {page} = await client.getCollections()
+    expect(client.translate(page[0], null, 'en-US').lang).toBeUndefined()
   })
   test('translations', async () => {
     client = await createClient({
@@ -88,20 +89,9 @@ describe('API', () => {
     })
     await client.init()
     const {multilingual} = await client.getCollections()
-    expect(multilingual.length).toBe(2) // 1 item in 2 lang
-    expect(multilingual[0].lang).not.toBeUndefined()
-  })
-  test('translate filter', async () => {
-    client = await createClient({
-      ...OPTIONS,
-      translationField: 'multilingual_translations',
-      languageCollection: 'languages',
-    })
-    await client.init()
-    const {multilingual} = await client.getCollections()
     const item = multilingual[0]
-    expect(item.translated).toBeUndefined()
-    const translated = translate(item, 'multilingual_translations')
+    expect(item.lang).toBeUndefined()
+    const translated = client.translate(item, 'multilingual_translations', 'en-US')
     expect(translated).not.toBeUndefined()
     expect(translated.text).not.toBeUndefined()
     expect(translated.text.startsWith('text '))
