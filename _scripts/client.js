@@ -231,7 +231,7 @@ class Client {
     if(!item) throw new Error('Error: canot translate item, item is undefined')
 
     const lang_code = lang?.code ?? lang
-    const field = getTranslationField(collection, translationField)
+    const field = translationField ?? (item['translations'] ? 'translations' : `${collection}_translations`)
     if(lang_code && field && item[field]) {
       const translated = item[field]
         ?.find(translation => !!Object.keys(translation)
@@ -240,19 +240,10 @@ class Client {
       return {
         ...item,
         lang,
-        collection,
         ...translated,
       }
     }
     return item // not multilingual
-  }
-}
-
-function getTranslationField(collection, translationField = `${collectionItem}_translations`) {
-  if(typeof translationField === 'function') {
-    return translationField(collection)
-  } else {
-    return translationField
   }
 }
 

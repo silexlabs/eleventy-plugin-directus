@@ -124,7 +124,14 @@ all.forEach(item => console.log(`I belong to the collection ${item.collection}`)
 
 Use the translate filter to get the translated part of a directus collection item
 
-Let's say you have a directus collection called "post" containing a list of posts. In this collection you have 2 text fields: `non-translated-text` and a "translation field" called `translation_field`. In the collection "translation_field", you have just one field called `translated-text`
+| argument | description | default | example |
+| -- | -- | -- | -- |
+| translation field | The name of your directus "translations field" (see [directus docs about translations fields](https://docs.directus.io/configuration/data-model/relationships.html#translations-o2m)) | Tries to find a field `translations` in the input item and if it fails takes the input item's `collection` field and append `_translations` to it | {% assign translated = item | directus_translate: "translations", "en" %} |
+| language | The language code you need | Takes the input item's `lang` attribute if it has one | {% assign translated = item | directus_translate: nil, "en" %} |
+
+Returns an object with all the fields of the input, plus the fields of the object in the translations field which has `lang` set to the language you want
+
+For example let's say you have a directus collection called "post" containing a list of posts. In this collection you have 2 text fields: `non-translated-text` and a "translation field" called `translation_field`. In the collection "translation_field", you have just one field called `translated-text`
 
 In your layouts use the filter to find the appropriate language and merge the translation with the item itself:
 
