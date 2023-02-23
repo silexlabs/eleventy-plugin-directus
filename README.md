@@ -81,8 +81,8 @@ For this plugin to retrieve **private** data, use the `skd.authenticated` option
 | token | String passed to [Directus SDK's `auth.static` method](https://docs.directus.io/reference/sdk.html#login) | - (optional, this is useful to retrieve private data only) |
 | onItem | A callback to modify each item while collections are created. Use `item.collection` if you need to take the collection name into account. | item => item |
 | filterCollection | | |
-| allowHidden | | |
-| allowSystem | | |
+| allowHidden | Keep hidden collections in directus.collections.all | `true` |
+| allowSystem | Keep system collections in directus.collections.all | `true` |
 
 ### Config Examples
 
