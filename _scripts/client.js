@@ -51,12 +51,6 @@ class Client {
         }, {})
     })
   }
-  get collections() {
-    return {
-      ...this.getCollections(),
-      all: this.getAll(),
-    }
-  }
   /**
    * Init directus client
    */
@@ -68,6 +62,10 @@ class Client {
     this.login && await this.directus.auth.login(this.login)
     this.token && await this.directus.auth.static(this.token)
     this.eleventyCollections = await this.get11tyCollectionsExpanded(onItem, filterCollection)
+    this.collections = {
+      ...this.getCollections(),
+      all: this.getAll(),
+    }
   }
   /**
    * Check that directus is reachable
