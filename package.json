@@ -1,6 +1,6 @@
 {
   "name": "@silexlabs/eleventy-plugin-directus",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Expose Directus collections as global data in 11ty ",
   "homepage": "https://github.com/silexlabs/eleventy-plugin-directus",
   "main": ".eleventy.js",
