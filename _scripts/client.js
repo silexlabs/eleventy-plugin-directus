@@ -237,9 +237,15 @@ class Client {
           .find(key => translation[key]?.code === lang_code) // any key with property `code` will do
         )
       return {
+        // Keep original item props
         ...item,
-        lang,
+        // Merge with translated data
         ...translated,
+        // Keep the item ID and collection
+        id: item.id,
+        collection: item.collection,
+        // add the language
+        lang,
       }
     }
     return item // not multilingual
