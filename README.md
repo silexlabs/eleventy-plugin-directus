@@ -83,6 +83,8 @@ For this plugin to retrieve **private** data, use the `skd.authenticated` option
 | filterCollection | | |
 | allowHidden | Keep hidden collections in directus.collections.all | `true` |
 | allowSystem | Keep system collections in directus.collections.all | `true` |
+| sequencial | Should all collections and their items be fetched sequencially or in parallel | `false` |
+| recursions | How many levels of recursions do you need? This uses the `fields` field of requests. | `7` |
 
 ### Config Examples
 

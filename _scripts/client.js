@@ -5,13 +5,13 @@ const OPTION_LIMIT = (limit = -1) => ({
   limit,
 })
 
-const OPTION_WITH_FIELDS = () => ({
-  fields: [
-    '*.*.*.*.*.*.*', // this is for all fields on multiple levels
-  ],
-})
-
 const DIRECTUS_UPLOAD_FOLDER = process.env.DIRECTUS_UPLOAD_FOLDER
+
+async function allSync(promises) {
+  if (promises.length === 0) return []
+  const [firstElement, ...rest] = promises
+  return [await firstElement, ...(await allSync(rest))]
+}
 
 /**
  * @class Retrieve content from Directus
@@ -24,6 +24,8 @@ class Client {
     token,
     allowHidden,
     allowSystem,
+    sequencial,
+    recursions,
   }) {
     // init attributes
     this.url = url
@@ -33,6 +35,13 @@ class Client {
     this.eleventyCollections = null
     this.allowHidden = allowHidden
     this.allowSystem = allowSystem
+    this.sequencial = sequencial
+    this.fields = {
+      // Get all fields on multiple levels
+      fields: [
+        '*'.repeat(recursions).split('').join('.'),
+      ],
+    }
 
     // init directus client
     this.directus = new Directus(url, { auth })
@@ -56,7 +65,7 @@ class Client {
    */
   async init(onItem = item => item, filterCollection = () => true) {
     if(this.initDone) {
-      return;
+      return
     }
     this.initDone = true
     this.login && await this.directus.auth.login(this.login)
@@ -92,7 +101,7 @@ class Client {
       // const collections = await this.directus.collections()
       const { data } = await this.directus.items('directus_collections').readByQuery({
         ...OPTION_LIMIT(),
-        ...OPTION_WITH_FIELDS(),
+        ...this.fields,
         ...options,
       })
       return data
@@ -114,7 +123,7 @@ class Client {
     try {
       const { data } = await this.directus.items(name).readByQuery({
         ...OPTION_LIMIT(),
-        ...OPTION_WITH_FIELDS(),
+        ...this.fields,
         ...options,
       })
       return data
@@ -189,7 +198,7 @@ class Client {
    */
   async get11tyCollectionsExpanded(onItem, filterCollection) {
     const collections = await this.get11tyCollections(filterCollection)
-    return Promise.all(collections.map(async collection => {
+    const promises = collections.map(async collection => {
       const data = await this.get11tyCollection(collection)
       if(!data) {
         console.warn('WARN: directus did not return any data for collection', collection)
@@ -200,11 +209,16 @@ class Client {
         return data
       }
       
-      let res = await Promise.all(data.map(onItem));
+      const onItemCbks = data.map(onItem)
+      const res = this.sequencial ?
+        await allSync(onItemCbks) :
+        await Promise.all(onItemCbks)
+
       res.__metadata = collection // FIXME: this adds a property to the array
 
       return res
-    }))
+    })
+    return this.sequencial ? allSync(promises) : Promise.all(promises)
     .then(collections => collections
       .filter(collection => !!collection) // filter the cases when directus errored
     )

@@ -4,6 +4,8 @@ const { start, stop } = require('./directus-server/')
 const port = 8056
 const OPTIONS = {
   url: `http://localhost:${port}`,
+  sequencial: true,
+  recursions: 7,
 }
 const NUM_COLLECTIONS = 5 // page, post, settings, multilingual, languages
 
@@ -63,7 +65,6 @@ describe('API', () => {
     expect(page).not.toBeUndefined()
     expect(page).toBeInstanceOf(Array)
     expect(page.length).toBeGreaterThan(0)
-    console.log(page)
     expect(page[0].text).toBe('Home page')
     expect(post).not.toBeUndefined()
     expect(post).toBeInstanceOf(Array)
@@ -73,10 +74,8 @@ describe('API', () => {
     expect(settings).toBeInstanceOf(Object)
     expect(settings.test_property).toBe('test value')
   })
-  test('getAll', async () => {
-  })
-  test('collections', async () => {
-  })
+  // TODO: test('getAll', async () => {})
+  // TODO: test('collections', async () => {})
   test('not multilingual', async () => {
     const {page} = await client.getCollections()
     expect(client.translate(page[0], null, 'en-US').lang).toBeUndefined()
@@ -95,6 +94,24 @@ describe('API', () => {
     expect(translated).not.toBeUndefined()
     expect(translated.text).not.toBeUndefined()
     expect(translated.text.startsWith('text '))
+  })
+  test('options recursions', async () => {
+    // With the default recursions
+    let result = await client.getCollections()
+    expect(result.page).toBeInstanceOf(Array)
+    result.page.forEach(p => {
+      expect(p.user_created).toBeUndefined() // users is not public
+    })
+    client = await createClient({
+      ...OPTIONS,
+      recursions: 1,
+    })
+    await client.init()
+    result = await client.getCollections()
+    expect(result.page).toBeInstanceOf(Array)
+    result.page.forEach(p => {
+      expect(typeof p.user_created).toBe('string')
+    })
   })
 })
 

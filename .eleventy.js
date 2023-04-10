@@ -9,6 +9,8 @@ module.exports = (eleventyConfig, _options) => {
     allowSystem: false,
     onItem: item => item,
     filterCollection: ({collection, meta}) => true,
+    sequencial: false,
+    recursions: 7,
   }
 
   const options = {
@@ -23,6 +25,8 @@ module.exports = (eleventyConfig, _options) => {
     login: options.login,
     token: options.token,
     auth: options.auth,
+    sequencial: options.sequencial,
+    recursions: options.recursions,
   })
 
   // Add global data and init
