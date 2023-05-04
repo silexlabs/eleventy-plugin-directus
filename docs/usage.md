@@ -99,9 +99,9 @@ This concerns [all text fields](https://docs.directus.io/app/data-model/fields/t
 ```liquidjs
 {% liquid
     assign article = directus.collections.article | first
-    article.title
-    article.date_updated
-    article.some_checkbox
+    echo article.title
+    echo article.date_updated
+    echo article.some_checkbox
 %}
 ```
 
@@ -167,7 +167,7 @@ With `reciepe` a singleton collection
 ```liquid
 {% liquid
     ingredient = directus.collections.reciepe | directus_relation: "ingredients" | first
-    ingredient.name
+    echo ingredient.name
 %}
 ```
 ### Builder - M2A
@@ -178,9 +178,9 @@ for page in directus.collections.pages
     assign sections = page | directus_relation: "sections"
     assign first = sections | first
     if first.collection == "headings"
-        section.title
+        echo section.title
     else
-        section.text
+        echo section.text
     endif
 endfor
 %}
@@ -192,6 +192,6 @@ endfor
 {% liquid
     assign article = directus.collections.article | first
     assign translted = article | directus_relation: "translation" | where: "lang", "fr"
-    translated.title
+    echo translated.title
 %}
 ```
