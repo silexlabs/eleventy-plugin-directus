@@ -80,7 +80,7 @@ For this plugin to retrieve **private** data, use the `skd.authenticated` option
 | login | Object passed to [Directus SDK's `auth.login` method](https://docs.directus.io/reference/sdk.html#login) | - (optional, this is useful to retrieve private data only) |
 | token | String passed to [Directus SDK's `auth.static` method](https://docs.directus.io/reference/sdk.html#login) | - (optional, this is useful to retrieve private data only) |
 | onItem | A callback to modify each item while collections are created. Use `item.collection` if you need to take the collection name into account. | item => item |
-| filterCollection | | |
+| filterCollection | A function which takes the collection name as input and outputs a boolean. It is applied as a filter when first getting the collections list | default: `collection => collection` |
 | allowHidden | Keep hidden collections in directus.collections.all | `true` |
 | allowSystem | Keep system collections in directus.collections.all | `true` |
 | sequencial | Should all collections and their items be fetched sequencially or in parallel | `false` |
@@ -166,93 +166,7 @@ Each `directus.collection` is an array of items or an item (case of a singleton)
 
 ### Directus collections and 11ty pages
 
-Here is how to turn your Directus colections into pages
-
-### Singletons
-
-Here is the [definition of a singleton in Directus](https://docs.directus.io/getting-started/glossary.html#singleton)
-
-> A collection that only contains one single item
-
-Read this on how to [create a singleton in Directus](https://docs.directus.io/configuration/data-model/collections.html#create-a-collection)
-
-In your 11ty website use the singleton data as follows - in this example let's call the singleton `settings`:
-
-```liquid
-{{ directus.collections.settings.some_field }}
-```
-
-### 1 collection as pages
-
-If you have a collection and want every item to have its own page in your website, create a markdown file like this one - in this example let's call the collection `posts`:
-
-```md
----
-pagination:
-  data: directus.collections.posts
-  size: 1
-  alias: post
-permalink: /example/{{ post.some_field | slug }}/
-
----
-
-<h1>{{ post.some_field }}</h1>
-
-```
-
-### Directus collections as 11ty collections (example of sitemap)
-
-Let's say you want all the collections which have a field `some_field` to be a collection in 11ty. This can be usefull for the sitemap plugin for example:
-
-```js
-  // In .eleventy.js
-  // Create 1 collection in 11ty out of each collection in Directus
-  eleventyConfig.addCollection('sitemap', async function(collectionApi) {
-    const directus = await  eleventyConfig.globalData.cms()
-    return directus.getAll()
-      .filter(collection => !!collection.some_field) // keep only the Directus collections you want
-      .map(collection => ({
-        ...collection,
-        url: `${BASE_URL}/example/${slugify(collection.some_field)}/`, // add the `url` field required by the sitemap plugin
-      }))
-  })
-  // sitemap plugin
-  eleventyConfig.addPlugin(sitemap, {
-    sitemap: {
-      hostname: BASE_URL,
-    },
-  })
-
-```
-
-### All collections as pages
-
-Use the following layout (`switch`) automatically selects the layout based on the collection name - you need to have a layout with the same name as the collections. You could also use the same technique as the `sitemap` collection above to filter Directus collections and keep only the ones you want to generate pages.
-
-The `switch` layout:
-
-```liquidjs
-{% assign layout = '_layouts/' | append: current.collection | default: 'default' | append: '.html' %}
-{% layout layout %}
-
-```
-
-```md
----
-layout: switch
-pagination:
-  data: directus.collections.all
-  size: 1
-  alias: current
-permalink: /example/{{ current.some_field | slug }}/
-
----
-
-This is the collection of the current item: {{ current.collection }}
-
-It is also the name of the layout used to render this page
-
-```
+> Check [the documentation folder](./docs/index.md)
 
 ### Collections in a multi-lingual website
 
