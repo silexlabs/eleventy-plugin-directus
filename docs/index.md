@@ -1,3 +1,3 @@
 # Documentation Directus plugin for Eleventy
 
-[Usage in templates]
+[Usage in templates](./usage)
