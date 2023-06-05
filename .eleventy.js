@@ -36,10 +36,11 @@ module.exports = (eleventyConfig, _options) => {
     await directus.init(options.onItem, options.filterCollection)
     // Check that we can connect to directus
     if(!healthOk && !await directus.healthCheck()) {
-      throw new Error('ERROR: could not connect to Directus\n\nIs Directus running? Do we have access to "Directus Collections"?\n\n')
+      console.warn('WARNING: could not connect to Directus\n\nIs Directus running? Do we have access to "Directus Collections"?\n\n')
+    } else {
+      // Check only once when success
+      healthOk = true
     }
-    // Check only once
-    healthOk = true
     return directus
   })
 
