@@ -10,7 +10,7 @@ This plugin also creates [filters to manage assets URLs and translations](#filte
 
 ### Disclaimer
 
-This plugin is a work in progress, we use it in production at [Internet 2000](https://internet2000.net), PRs welcome
+/!\ This plugin was used in production at [Internet 2000](https://internet2000.net), but it has flows explained bellow. We used it along with [Silex free/libre nocode website builder](https://www.silex.me) which is now able to generate 11ty data files with GraphQL queries to connect to directus and query exactly the data needed in the layout. This plugin is now read-only / archived, please get in touch if you'd like to take over its development.
 
 Following [this discussion](https://github.com/directus/directus/discussions/17293) with [@rijkvanzanten](https://github.com/rijkvanzanten), lead maintainer of Directus, I need your input on how to make this plugin better, as it depends on the use cases. So please head to [this discussion and let's talk use cases](https://github.com/directus/directus/discussions/17293)
 
